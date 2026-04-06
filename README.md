@@ -227,14 +227,88 @@ Uso de scripts Python:
 
 ## 5. Resultados
 
+* Comunicación TCP estable.
+* Manejo concurrente de clientes mediante hilos.
+* Procesamiento correcto de datos.
+* Respuestas correctas según distancia.
+* Manejo de errores implementado.
+* Sistema funcional en pruebas reales.
+
 ---
 
 ## 6. Conclusiones
+
+* TCP garantiza comunicación confiable.
+* Arquitectura cliente-servidor simplifica el sistema.
+* Separación de responsabilidades mejora mantenimiento.
+* Uso de hilos permite concurrencia básica.
+* Sistema cumple requisitos funcionales y no funcionales.
 
 ---
 
 ## 7. Recomendaciones
 
+* Usar JSON o MQTT.
+* Implementar logs.
+* Migrar a `asyncio`.
+* Añadir autenticación.
+* Integrar base de datos.
+* Crear dashboard web.
+
 ---
 
 ## 8. Anexos
+
+### Flujo de comunicación
+ESP32 Sensor        →   Servidor TCP       →   ESP32 Actuador
+   |                        |                        |
+   |---- "SENSOR" --------->|                        |
+   |                        |                        |
+   |---- "DIST:25" -------->|                        |
+   |                        |---- "YELLOW" --------->|
+   |                        |                        |
+---
+
+### Ejemplo de mensajes
+#### Registro de cliente:
+
+SENSOR
+ACTUADOR
+
+#### Envío de datos:
+
+DIST:10
+DIST:45
+DIST:70
+
+#### Respuestas del servidor:
+
+RED
+YELLOW
+GREEN
+
+---
+
+### Consideraciones TCP
+
+* Protocolo orientado a conexión
+* Puede concatenar mensajes
+* Requiere procesamiento manual del buffer
+
+---
+
+### Mejora con JSON
+
+```json
+{
+  "type": "sensor",
+  "distance": 25
+}
+```
+### Respuesta:
+
+```json
+{
+  "action": "YELLOW"
+}
+```
