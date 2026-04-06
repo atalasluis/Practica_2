@@ -5,5 +5,5 @@ class LogicController:
             return "RED"
         elif distancia < 50:
             return "YELLOW"
-        else:
+        elif distancia < 80:
             return "GREEN"

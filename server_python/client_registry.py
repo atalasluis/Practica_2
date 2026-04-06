@@ -1,4 +1,3 @@
-
 class ClientRegistry:
 
     def __init__(self):
