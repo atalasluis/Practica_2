@@ -14,24 +14,22 @@ El sistema está compuesto por:
 
 ### Funcionales
 
-* El sistema debe permitir que múltiples clientes (ESP32 o simuladores) se conecten al servidor mediante comunicación TCP.
-* El sistema debe permitir que los clientes se identifiquen como: SENSOR y ACTUADOR.
-* El sistema debe recibir datos enviados por el ESP32 sensor en el formato: DIST:<valor>
+* El sistema debe permitir que múltiples clientes (2 clientes: un sensor y un actuador) se conecten al servidor mediante comunicación TCP.
+* El sistema debe permitir que los clientes se identifiquen como: `"SENSOR"` y `"ACTUADOR"`.
+* El sistema debe recibir datos enviados por el ESP32 sensor en el formato: `DIST:<valor>`.
 * El servidor debe procesar los datos de distancia recibidos y determinar una acción según la lógica definida.
 * El sistema debe enviar comandos al ESP32 actuador según la lógica:
 
-        RED → distancia < 20 
+        DANGER → distancia < 10
+        RED → 10 ≤ distancia < 20
+        YELLOW → 20 ≤ distancia < 50
+        GREEN → 50 ≤ distancia < 80
 
-        YELLOW → 20 ≤ distancia < 50 
-
-        GREEN → distancia ≥ 50 
-
-* El ESP32 actuador debe recibir los comandos y activar el LED correspondiente.
+* El ESP32 actuador debe recibir los comandos y activar la combinación de LEDs correspondiente.
   
 ### No Funcionales
 
-* El sistema debe procesar y responder a los datos del sensor en tiempo real (latencia mínima).
-* La comunicación entre clientes y servidor debe ser confiable, garantizando la entrega de mensajes mediante TCP.
+* El sistema debe procesar y responder a los datos del sensor en tiempo cercano a tiempo real (≈2 segundos debido al intervalo de envío del sensor) 
 * El sistema debe ser fácil de probar mediante herramientas como scripts en Python.
 
 ---
@@ -65,20 +63,22 @@ El sistema está compuesto por:
 
   6. Actuador → enciende LED correspondiente
 
-  | Tipo de Mensaje | Emisor | Formato | Ejemplo | Descripcion |
-  | --------------- |------- | ------- | ------- | ----------- |
-  | Identificacion | ESP32 | Sensor | Sensor | Se registra como sensor |
-  | Identificacion | ESP32 | Actuador | Actuador | Se registra como actuador |
-  | Datos | Sensor | DIST:<valor> | DIST:25 | Envía distancia |
-  | Respuesta | Servidor | RED | RED | LED rojo |
-  | Respuesta | Servidor | YELLOW | YELLOW | LED amarillo |
-  | Respuesta | Servidor | GREEN | GREEN | LED verde |
+  | Tipo de Mensaje | Emisor   | Formato        | Ejemplo   | Descripción                      |
+   |-----------------|----------|----------------|-----------|----------------------------------|
+   | Identificación  | ESP32    | `"SENSOR"`     | SENSOR    | Registro como sensor             |
+   | Identificación  | ESP32    | `"ACTUADOR"`   | ACTUADOR  | Registro como actuador           |
+   | Datos           | Sensor   | `DIST:<valor>` | DIST:30   | Envío de distancia               |
+   | Respuesta       | Servidor | `"DANGER"`     | DANGER    | Estado crítico                   |
+   | Respuesta       | Servidor | `"RED"`        | RED       | Distancia corta                  |
+   | Respuesta       | Servidor | `"YELLOW"`     | YELLOW    | Distancia media                  |
+   | Respuesta       | Servidor | `"GREEN"`      | GREEN     | Distancia segura                 |
 
-  | Distancia (cm) | Accion | Led |
-  | -------------- | ------ | --- |
-  | < 20 | Muy cerca | Rojo |
-  | < 50 | Medio | Amarillo |
-  | < 80 | Lejos | Verde |
+  | Distancia (cm) | Estado           | Acción (LEDs)              |
+   |---------------|-----------------|----------------------------|
+   | < 10          | Estado crítico  | Parpadeo (todos ON/OFF)    |
+   | 10 – 19       | Distancia corta | Activación combinada       |
+   | 20 – 49       | Distancia media | Activación combinada       |
+   | 50 – 79       | Distancia segura| Activación combinada       |
 
 ### Diagramas estructurales y de comportamiento
 
@@ -189,13 +189,13 @@ El plan de pruebas cubre:
 
 #### ⚠️ CP6 – Desconexión del cliente
 
-* Cliente se desconecta
-* **Resultado esperado:** El servidor detecta y maneja la desconexión
+* Cliente se desconecta  
+* **Resultado esperado:** El servidor detecta la desconexión y cierra la conexión
 
 #### ⚠️ CP7 – Datos inválidos
 
-* **Entrada:** "DIST:abc"
-* **Resultado esperado:** Error controlado sin caída del servidor
+* **Entrada:** "DIST:abc"  
+* **Resultado esperado:** El sistema genera una excepción (no controlada)
 
 ### Metodología de pruebas
 
@@ -219,21 +219,19 @@ Uso de scripts Python:
 ### Resultados obtenidos
 
 * Comunicación TCP estable
-* Procesamiento correcto de datos
+* Procesamiento correcto de datos válidos
 * Respuesta adecuada del actuador
-* Corrección de errores en manejo de mensajes TCP
+* Procesamiento correcto de mensajes concatenados
 
 ---
 
 ## 5. Resultados
 
-* Comunicación TCP estable.
+* Comunicación TCP funcional.
 * Manejo concurrente de clientes mediante hilos.
-* Procesamiento correcto de datos.
+* Procesamiento correcto de datos válidos.
 * Respuestas correctas según distancia.
-* Manejo de errores implementado.
 * Sistema funcional en pruebas reales.
-
 ---
 
 ## 6. Conclusiones
@@ -264,7 +262,7 @@ ESP32 Sensor        →   Servidor TCP       →   ESP32 Actuador
    |                        |                        |
    |---- "SENSOR" --------->|                        |
    |                        |                        |
-   |---- "DIST:25" -------->|                        |
+   |---- "DIST:30" -------->|                        |
    |                        |---- "YELLOW" --------->|
    |                        |                        |
 ---
@@ -278,8 +276,8 @@ ACTUADOR
 #### Envío de datos:
 
 DIST:10
-DIST:45
-DIST:70
+DIST:30
+DIST:60
 
 #### Respuestas del servidor:
 
@@ -302,7 +300,7 @@ GREEN
 ```json
 {
   "type": "sensor",
-  "distance": 25
+  "distance": 30
 }
 ```
 ### Respuesta:
