@@ -1,74 +1,19 @@
-#include <WiFi.h>
+#include "ActuatorController.h"
 
-const char* ssid = "TU_WIFI";
-const char* password = "TU_PASSWORD";
+#define RED_PIN 19
+#define YELLOW_PIN 18
+#define GREEN_PIN 5
 
-const char* host = "192.168.1.100"; 
-const int port = 5000;
-
-#define LED_RED 5
-#define LED_YELLOW 18
-#define LED_GREEN 19
-
-WiFiClient client;
-
-void apagarTodos() {
-  digitalWrite(LED_RED, LOW);
-  digitalWrite(LED_YELLOW, LOW);
-  digitalWrite(LED_GREEN, LOW);
-}
+ActuatorController controller(
+    "TP-Link_22C2", "*",     // WiFi
+    "192.168.0.107", 12345, // servidor
+    RED_PIN, YELLOW_PIN, GREEN_PIN
+);
 
 void setup() {
-  Serial.begin(115200);
-
-  pinMode(LED_RED, OUTPUT);
-  pinMode(LED_YELLOW, OUTPUT);
-  pinMode(LED_GREEN, OUTPUT);
-
-  WiFi.begin(ssid, password);
-  Serial.print("Conectando WiFi");
-
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-
-  Serial.println("\nWiFi conectado");
-
-  while (!client.connect(host, port)) {
-    Serial.println("Conectando al servidor...");
-    delay(2000);
-  }
-
-  Serial.println("Conectado al servidor");
-
-  client.println("ACTUADOR");
+    controller.setup();
 }
 
 void loop() {
-  if (!client.connected()) {
-    Serial.println("Reconectando...");
-    client.connect(host, port);
-    client.println("ACTUADOR");
-  }
-
-  if (client.available()) {
-    String comando = client.readStringUntil('\n');
-    comando.trim();
-
-    Serial.print("Comando recibido: ");
-    Serial.println(comando);
-
-    apagarTodos();
-
-    if (comando == "RED") {
-      digitalWrite(LED_RED, HIGH);
-    }
-    else if (comando == "YELLOW") {
-      digitalWrite(LED_YELLOW, HIGH);
-    }
-    else if (comando == "GREEN") {
-      digitalWrite(LED_GREEN, HIGH);
-    }
-  }
+    controller.loop();
 }

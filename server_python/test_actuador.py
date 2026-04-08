@@ -1,6 +1,6 @@
 import socket
 
-HOST = "192.168.0.102"  # IP de tu laptop
+HOST = "192.168.0.107"  # IP de tu laptop
 PORT = 12345
 
 def main():

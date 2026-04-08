@@ -1,7 +1,7 @@
 import socket
 import time
 
-HOST = "192.168.0.102"  # IP de tu laptop (NO 127.0.0.1)
+HOST = "192.168.0.107"  # IP de tu laptop (NO 127.0.0.1)
 PORT = 12345
 
 def main():
